@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.6.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 13-14 Observability）",
+    version="0.7.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 17-18 SLI/SLO）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.6.0",
-        "week": "13-14 (Observability)",
-        "endpoints_count": 35,
+        "version": "0.7.0",
+        "week": "17-18 (SLI/SLO)",
+        "endpoints_count": 41,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.6.0",
-        "week": "13-14",
+        "version": "0.7.0",
+        "week": "17-18",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -84,6 +84,16 @@ from .observability.routes import router as obs_router  # noqa: E402
 from .observability.metrics import metrics_middleware  # noqa: E402
 app.include_router(obs_router)
 app.middleware("http")(metrics_middleware)
+
+# Logs + Alerts（Week 15-16）
+from .logs.structured_logging import setup_logging  # noqa: E402
+from .logs.routes import router as logs_router  # noqa: E402
+setup_logging()  # 启动时配置 JSON logger
+app.include_router(logs_router)
+
+# SLO（Week 17-18）
+from .slo.routes import router as slo_router  # noqa: E402
+app.include_router(slo_router)
 
 
 # ============================================
