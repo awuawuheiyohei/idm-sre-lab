@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.2.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 3-4 OAuth2/OIDC MVP）",
+    version="0.3.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 5-6 SAML 2.0 MVP）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.2.0",
-        "week": "3-4 (OAuth2/OIDC MVP)",
-        "endpoints_count": 8,
+        "version": "0.3.0",
+        "week": "5-6 (SAML 2.0 MVP)",
+        "endpoints_count": 17,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.2.0",
-        "week": "3-4",
+        "version": "0.3.0",
+        "week": "5-6",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -45,11 +45,20 @@ async def root():
             "userinfo": "/oauth/userinfo",
             "revoke": "/oauth/revoke",
             "audit": "/oauth/audit",
+            "saml_metadata": "/saml/metadata",
+            "saml_idp_metadata": "/saml/idp-metadata",
+            "saml_login": "/saml/login",
+            "saml_idp_sso": "/saml/idp/sso",
+            "saml_acs": "/saml/acs",
+            "saml_userinfo": "/saml/userinfo",
+            "saml_sessions": "/saml/sessions",
+            "saml_slo": "/saml/slo",
+            "saml_audit": "/saml/audit",
             "admin_seed": "/admin/seed",
         },
         "roadmap": {
-            "current": "Week 3-4 (OAuth2/OIDC MVP)",
-            "next": "Week 5-6 (SAML 2.0)",
+            "current": "Week 5-6 (SAML 2.0 MVP)",
+            "next": "Week 7-8 (WebAuthn)",
             "weeks_total": 30,
         },
     }
@@ -57,6 +66,10 @@ async def root():
 
 # OAuth 路由
 app.include_router(oauth_router)
+
+# SAML 路由
+from .saml.routes import router as saml_router  # noqa: E402
+app.include_router(saml_router)
 
 
 # ============================================

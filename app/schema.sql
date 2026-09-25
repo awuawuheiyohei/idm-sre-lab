@@ -96,3 +96,66 @@ CREATE TABLE IF NOT EXISTS oauth_audit (
 );
 
 CREATE INDEX IF NOT EXISTS idx_audit_action ON oauth_audit(action);
+-- ============================================
+-- SAML 2.0 Service Providers（Week 5-6）
+-- ============================================
+CREATE TABLE IF NOT EXISTS saml_service_providers (
+    sp_id            TEXT PRIMARY KEY,                       -- SP-001
+    entity_id        TEXT NOT NULL UNIQUE,                   -- https://app.example.com/saml/metadata
+    acs_url          TEXT NOT NULL,                          -- Assertion Consumer Service
+    slo_url          TEXT NOT NULL,
+    name_id_format   TEXT NOT NULL DEFAULT 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+    signing_key_id   TEXT,                                   -- 哪个 RSA key 用来签名/验证
+    enabled          INTEGER NOT NULL DEFAULT 1,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- SAML Identity Providers（自建 IdP 演示用）
+-- ============================================
+CREATE TABLE IF NOT EXISTS saml_identity_providers (
+    idp_id           TEXT PRIMARY KEY,                       -- IDP-001
+    entity_id        TEXT NOT NULL UNIQUE,
+    sso_url          TEXT NOT NULL,                          -- IdP-initiated SSO URL
+    slo_url          TEXT NOT NULL,
+    signing_key_id   TEXT,                                   -- RSA key 用于签名 Assertion
+    enabled          INTEGER NOT NULL DEFAULT 1,
+    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- SAML Sessions（持久化登录状态）
+-- ============================================
+CREATE TABLE IF NOT EXISTS saml_sessions (
+    session_id       TEXT PRIMARY KEY,                       -- SAML-{ts}-{rand}
+    user_id          TEXT NOT NULL,
+    sp_id            TEXT NOT NULL,
+    name_id          TEXT NOT NULL,                          -- SAML NameID (typically email)
+    session_index    TEXT NOT NULL,
+    not_before       TEXT NOT NULL,
+    not_on_or_after  TEXT NOT NULL,
+    attributes       TEXT NOT NULL,                          -- JSON: {email, role, business_unit}
+    relay_state      TEXT,                                   -- SP 原始请求页面
+    created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (sp_id) REFERENCES saml_service_providers(sp_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saml_session_user ON saml_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_saml_session_index ON saml_sessions(session_index);
+
+-- ============================================
+-- SAML Audit
+-- ============================================
+CREATE TABLE IF NOT EXISTS saml_audit (
+    audit_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor            TEXT,
+    action           TEXT NOT NULL,                          -- authn_request / assertion_issued / sso_completed / slo_requested / slo_completed
+    sp_id            TEXT,
+    idp_id           TEXT,
+    user_id          TEXT,
+    details          TEXT,
+    occurred_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_saml_audit_action ON saml_audit(action);
