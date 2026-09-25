@@ -25,6 +25,7 @@ from ..models.oauth_store import (
     create_authorization_code, consume_authorization_code,
     issue_access_token, issue_refresh_token, issue_id_token,
     verify_token, revoke_token, list_active_tokens,
+    introspect_token, revoke_token_cached,
     log_event, validate_pkce_verifier,
     AUTH_CODE_TTL,
 )
@@ -344,6 +345,31 @@ async def revoke_endpoint(request: Request):
     log_event(conn, action="token_revoked", client_id=cid, user_id=claims["sub"],
               details={"token_type": claims.get("token_type")})
     return {"status": "ok"}
+
+
+# ============================================
+# /oauth/introspect (RFC 7662)
+# ============================================
+@router.post("/oauth/introspect")
+async def introspect_endpoint(request: Request):
+    """RFC 7662 Token Introspection — 客户端调，看 token 状态"""
+    form = await parse_form(request)
+    token = form.get("token", "")
+    if not token:
+        raise HTTPException(400, "Missing token")
+
+    # Client 认证（Basic auth 优先）
+    cid, secret = _client_auth_form(
+        request,
+        form.get("client_id"),
+        form.get("client_secret"),
+    )
+    if not cid or not verify_client_secret(cid, secret or ""):
+        raise HTTPException(401, "Invalid client credentials")
+
+    # Introspect（expected_aud 必须是这个 client 自己）
+    result = introspect_token(token, expected_aud=cid)
+    return result
 
 
 # ============================================

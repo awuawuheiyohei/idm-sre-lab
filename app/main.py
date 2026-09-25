@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.5.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 9-10 Devices Provisioning）",
+    version="0.6.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 13-14 Observability）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.5.0",
-        "week": "9-10 (Devices Provisioning)",
-        "endpoints_count": 32,
+        "version": "0.6.0",
+        "week": "13-14 (Observability)",
+        "endpoints_count": 35,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.5.0",
-        "week": "9-10",
+        "version": "0.6.0",
+        "week": "13-14",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -78,6 +78,12 @@ app.include_router(webauthn_router)
 # Devices 路由（Week 9-10）
 from .devices.routes import router as devices_router  # noqa: E402
 app.include_router(devices_router)
+
+# Observability 路由 + middleware（Week 13-14）
+from .observability.routes import router as obs_router  # noqa: E402
+from .observability.metrics import metrics_middleware  # noqa: E402
+app.include_router(obs_router)
+app.middleware("http")(metrics_middleware)
 
 
 # ============================================

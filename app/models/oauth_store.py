@@ -274,6 +274,58 @@ def revoke_token(jti: str) -> bool:
     return cur.rowcount > 0
 
 
+# ============================================
+# Token Introspection（RFC 7662）
+# ============================================
+def introspect_token(token: str, expected_aud: str) -> dict:
+    """RFC 7662 Token Introspection
+    返回 dict with "active" bool + 标准 fields (sub, aud, exp, scope, etc.)
+    active=False 时只返回 {"active": false}
+    """
+    base = {"active": False}
+    try:
+        claims = verify_token(token, expected_aud=expected_aud)
+    except ValueError:
+        return base
+    base.update({
+        "active": True,
+        "scope": claims.get("scope", ""),
+        "client_id": claims.get("client_id", ""),
+        "sub": claims.get("sub", ""),
+        "exp": claims.get("exp"),
+        "iat": claims.get("iat"),
+        "iss": claims.get("iss"),
+        "jti": claims.get("jti"),
+        "token_type": claims.get("token_type"),
+        "aud": claims.get("aud"),
+    })
+    return base
+
+
+# ============================================
+# Token 黑名单（RFC 7009 已实现，加 in-memory cache）
+# ============================================
+_revoked_jtis: set[str] = set()
+
+
+def revoke_token_cached(jti: str) -> bool:
+    """Revoke + 加入内存黑名单（加速 introspection 检查）"""
+    ok = revoke_token(jti)
+    if ok:
+        _revoked_jtis.add(jti)
+    return ok
+
+
+def is_revoked(jti: str) -> bool:
+    """快速检查（先看内存缓存，再查 DB）"""
+    if jti in _revoked_jtis:
+        return True
+    from ..db import db_connection
+    with db_connection() as conn:
+        row = conn.execute("SELECT revoked FROM tokens WHERE jti=?", (jti,)).fetchone()
+    return bool(row and row["revoked"] == 1)
+
+
 def list_active_tokens(user_id: str) -> list:
     conn = get_conn()
     rows = conn.execute(
