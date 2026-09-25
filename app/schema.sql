@@ -159,3 +159,90 @@ CREATE TABLE IF NOT EXISTS saml_audit (
 );
 
 CREATE INDEX IF NOT EXISTS idx_saml_audit_action ON saml_audit(action);
+
+-- ============================================
+-- WebAuthn / FIDO2 Credentials（Week 7-8）
+-- 简化版：用 HMAC-SHA256 challenge-response（生产换 py_webauthn + CBOR）
+-- ============================================
+CREATE TABLE IF NOT EXISTS webauthn_credentials (
+    credential_id   TEXT PRIMARY KEY,                       -- base64url encoded
+    user_id         TEXT NOT NULL,
+    public_key      TEXT NOT NULL,                          -- base64(HMAC demo key) or real COSE pubkey
+    counter         INTEGER NOT NULL DEFAULT 0,
+    aaguid          TEXT,                                   -- Authenticator Attestation GUID (mock)
+    transports      TEXT,                                   -- JSON list: ["usb","nfc","ble","internal"]
+    friendly_name   TEXT,                                   -- "YubiKey 5C", "Touch ID"
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    last_used_at    TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_webauthn_user ON webauthn_credentials(user_id);
+
+-- ============================================
+-- WebAuthn Challenges（短期挑战码）
+-- ============================================
+CREATE TABLE IF NOT EXISTS webauthn_challenges (
+    challenge       TEXT PRIMARY KEY,                       -- random 32 bytes base64url
+    user_id         TEXT,                                   -- NULL for register-less flows
+    purpose         TEXT NOT NULL,                          -- 'register' / 'authenticate'
+    expires_at      TEXT NOT NULL,
+    consumed        INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_webauthn_chal_expires ON webauthn_challenges(expires_at);
+
+-- ============================================
+-- Device Provisioning（Week 9-10：克诺尔 BU 场景）
+-- ============================================
+CREATE TABLE IF NOT EXISTS devices (
+    device_id        TEXT PRIMARY KEY,                      -- DEV-001
+    device_name      TEXT NOT NULL,                         -- "李工 ThinkPad T14"
+    user_id          TEXT NOT NULL,                         -- 关联 user
+    device_type      TEXT NOT NULL,                         -- LAPTOP / DESKTOP / TABLET / PHONE / IOT
+    os               TEXT NOT NULL,                         -- "Windows 11 Pro", "macOS 14"
+    serial_number    TEXT NOT NULL UNIQUE,
+    manufacturer     TEXT,                                  -- Lenovo / Apple / Dell
+    model            TEXT,
+    status           TEXT NOT NULL DEFAULT 'REGISTERED',   -- REGISTERED / ACTIVE / RETIRED / LOST
+    compliance_state TEXT NOT NULL DEFAULT 'PENDING',      -- PENDING / COMPLIANT / NON_COMPLIANT
+    business_unit    TEXT NOT NULL DEFAULT 'platform',
+    registered_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    activated_at     TEXT,
+    retired_at       TEXT,
+    last_check_in   TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_device_user ON devices(user_id);
+CREATE INDEX IF NOT EXISTS idx_device_status ON devices(status);
+CREATE INDEX IF NOT EXISTS idx_device_bu ON devices(business_unit);
+
+-- ============================================
+-- Device Audit（设备生命周期事件）
+-- ============================================
+CREATE TABLE IF NOT EXISTS device_audit (
+    audit_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor           TEXT,
+    action          TEXT NOT NULL,                          -- device_registered / device_activated / device_retired / device_compliance_changed
+    device_id       TEXT,
+    user_id         TEXT,
+    details         TEXT,
+    occurred_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- WebAuthn Audit（Week 7-8 补充）
+-- ============================================
+CREATE TABLE IF NOT EXISTS webauthn_audit (
+    audit_id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor           TEXT,
+    action          TEXT NOT NULL,                          -- register_begin / register_finish / authenticate_begin / authenticate_finish / delete_credential
+    credential_id   TEXT,
+    user_id         TEXT,
+    details         TEXT,
+    occurred_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_webauthn_audit_action ON webauthn_audit(action);

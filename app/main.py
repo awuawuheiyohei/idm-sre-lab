@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.3.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 5-6 SAML 2.0 MVP）",
+    version="0.5.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 9-10 Devices Provisioning）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.3.0",
-        "week": "5-6 (SAML 2.0 MVP)",
-        "endpoints_count": 17,
+        "version": "0.5.0",
+        "week": "9-10 (Devices Provisioning)",
+        "endpoints_count": 32,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.3.0",
-        "week": "5-6",
+        "version": "0.5.0",
+        "week": "9-10",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -70,6 +70,14 @@ app.include_router(oauth_router)
 # SAML 路由
 from .saml.routes import router as saml_router  # noqa: E402
 app.include_router(saml_router)
+
+# WebAuthn 路由（Week 7-8）
+from .webauthn.routes import router as webauthn_router  # noqa: E402
+app.include_router(webauthn_router)
+
+# Devices 路由（Week 9-10）
+from .devices.routes import router as devices_router  # noqa: E402
+app.include_router(devices_router)
 
 
 # ============================================
