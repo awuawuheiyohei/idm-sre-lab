@@ -268,3 +268,23 @@ CREATE TABLE IF NOT EXISTS chaos_experiments (
 
 CREATE INDEX IF NOT EXISTS idx_chaos_status ON chaos_experiments(status);
 CREATE INDEX IF NOT EXISTS idx_chaos_type ON chaos_experiments(experiment_type);
+
+-- ============================================
+-- Incident Response（Week 21-22）
+-- ============================================
+CREATE TABLE IF NOT EXISTS incidents (
+    incident_id       TEXT PRIMARY KEY,                       -- INC-{ts}
+    incident_type     TEXT NOT NULL,                          -- latency_spike / auth_fail / memory_leak / etc.
+    severity          TEXT NOT NULL,                          -- SEV-1 / SEV-2 / SEV-3
+    title             TEXT NOT NULL,
+    description       TEXT,
+    status            TEXT NOT NULL DEFAULT 'ACTIVE',         -- ACTIVE / INVESTIGATING / MITIGATED / RESOLVED / POSTMORTEM
+    triggered_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    resolved_at       TEXT,
+    mitigation        TEXT,                                  -- 具体 mitigation 动作
+    lessons_learned   TEXT,
+    runbook_ref       TEXT                                   -- 对应 runbook 章节
+);
+
+CREATE INDEX IF NOT EXISTS idx_inc_status ON incidents(status);
+CREATE INDEX IF NOT EXISTS idx_inc_type ON incidents(incident_type);

@@ -429,4 +429,4 @@ def test_main_root(client):
     assert r.status_code == 200
     d = r.json()
     assert d["service"] == "IdM SRE Lab"
-    assert d["week"] == "19-20"
+    assert d["week"] == "21-22"
