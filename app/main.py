@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.7.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 17-18 SLI/SLO）",
+    version="0.8.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 19-20 Chaos Engineering）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.7.0",
-        "week": "17-18 (SLI/SLO)",
-        "endpoints_count": 41,
+        "version": "0.8.0",
+        "week": "19-20 (Chaos Engineering)",
+        "endpoints_count": 44,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.7.0",
-        "week": "17-18",
+        "version": "0.8.0",
+        "week": "19-20",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -94,6 +94,10 @@ app.include_router(logs_router)
 # SLO（Week 17-18）
 from .slo.routes import router as slo_router  # noqa: E402
 app.include_router(slo_router)
+
+# Chaos Engineering（Week 19-20）
+from .chaos.routes import router as chaos_router  # noqa: E402
+app.include_router(chaos_router)
 
 
 # ============================================

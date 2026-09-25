@@ -246,3 +246,25 @@ CREATE TABLE IF NOT EXISTS webauthn_audit (
 );
 
 CREATE INDEX IF NOT EXISTS idx_webauthn_audit_action ON webauthn_audit(action);
+
+-- ============================================
+-- Chaos Engineering 实验（Week 19-20）
+-- ============================================
+CREATE TABLE IF NOT EXISTS chaos_experiments (
+    experiment_id    TEXT PRIMARY KEY,                       -- CHAOS-{ts}
+    experiment_type  TEXT NOT NULL,                          -- pod_kill / network_partition / latency_injection
+    target_service   TEXT NOT NULL,                          -- token-issuer / saml-issuer / oauth-authorize
+    duration_seconds INTEGER NOT NULL,
+    hypothesis       TEXT NOT NULL,                          -- 假设："SLO 不超过 baseline X%"
+    baseline_metrics TEXT,                                   -- JSON snapshot of pre-experiment metrics
+    during_metrics   TEXT,                                   -- JSON snapshot during experiment
+    after_metrics     TEXT,                                   -- JSON snapshot after experiment
+    status           TEXT NOT NULL DEFAULT 'PENDING',        -- PENDING / RUNNING / COMPLETED / ABORTED
+    verdict          TEXT NOT NULL DEFAULT 'UNKNOWN',        -- PASSED / FAILED / UNKNOWN
+    notes            TEXT,
+    started_at       TEXT NOT NULL DEFAULT (datetime('now')),
+    finished_at      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_chaos_status ON chaos_experiments(status);
+CREATE INDEX IF NOT EXISTS idx_chaos_type ON chaos_experiments(experiment_type);
