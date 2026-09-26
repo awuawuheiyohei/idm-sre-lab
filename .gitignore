@@ -25,4 +25,4 @@ htmlcov/
 output/
 
 # K8s 临时
-kubeconfig*
+kubeconfig*data/
