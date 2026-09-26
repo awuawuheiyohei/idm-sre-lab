@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="0.9.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 21-22 Incident Response）",
+    version="1.0.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 23-24 GenAI Alert Engineering）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "0.9.0",
-        "week": "21-22 (Incident Response)",
-        "endpoints_count": 51,
+        "version": "1.0.0",
+        "week": "23-24 (GenAI Alert Engineering)",
+        "endpoints_count": 54,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "0.9.0",
-        "week": "21-22",
+        "version": "1.0.0",
+        "week": "23-24",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
@@ -102,6 +102,10 @@ app.include_router(chaos_router)
 # Incident Response（Week 21-22）
 from .incidents.routes import router as incidents_router  # noqa: E402
 app.include_router(incidents_router)
+
+# GenAI Alert（Week 23-24）
+from .ai_alert.routes import router as ai_alert_router  # noqa: E402
+app.include_router(ai_alert_router)
 
 
 # ============================================

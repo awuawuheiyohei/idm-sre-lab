@@ -288,3 +288,18 @@ CREATE TABLE IF NOT EXISTS incidents (
 
 CREATE INDEX IF NOT EXISTS idx_inc_status ON incidents(status);
 CREATE INDEX IF NOT EXISTS idx_inc_type ON incidents(incident_type);
+
+-- ============================================
+-- GenAI Alert Interpretations（Week 23-24）
+-- ============================================
+CREATE TABLE IF NOT EXISTS ai_alert_log (
+    alert_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_name        TEXT NOT NULL,                          -- HighErrorRate / HighLatencyP95 / etc.
+    metrics_snapshot  TEXT NOT NULL,                          -- JSON snapshot of triggering metrics
+    llm_interpretation TEXT,                                   -- LLM 输出（strip_thinking 后）
+    runbook_ref       TEXT,                                   -- 关联的 runbook id
+    severity          TEXT,
+    created_at        TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_alert_name ON ai_alert_log(alert_name);
