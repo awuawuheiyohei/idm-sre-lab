@@ -303,3 +303,27 @@ CREATE TABLE IF NOT EXISTS ai_alert_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ai_alert_name ON ai_alert_log(alert_name);
+
+-- ============================================
+-- Post-Mortem Documents（Week 27-28）
+-- ============================================
+CREATE TABLE IF NOT EXISTS pm_documents (
+    pm_id              TEXT PRIMARY KEY,                       -- PM-{ts}
+    incident_id        TEXT,                                   -- 关联的 incident
+    title              TEXT NOT NULL,
+    severity           TEXT NOT NULL,                          -- SEV-1 / SEV-2 / SEV-3
+    summary            TEXT,                                   -- 1-2 段简短总结
+    timeline           TEXT,                                   -- JSON list of {time, event}
+    root_cause         TEXT,                                   -- 5 Whys 分析
+    impact             TEXT,                                   -- 用户影响 / 业务影响
+    what_went_well     TEXT,                                   -- 做得好的
+    what_went_wrong    TEXT,                                   -- 做得不好的
+    action_items       TEXT,                                   -- JSON list of {owner, action, due_date}
+    blameless          INTEGER NOT NULL DEFAULT 1,             -- blameless culture flag
+    status             TEXT NOT NULL DEFAULT 'DRAFT',          -- DRAFT / REVIEW / PUBLISHED
+    created_at         TEXT NOT NULL DEFAULT (datetime('now')),
+    published_at       TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_pm_status ON pm_documents(status);
+CREATE INDEX IF NOT EXISTS idx_pm_incident ON pm_documents(incident_id);
