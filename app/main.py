@@ -9,8 +9,8 @@ from .oauth.routes import router as oauth_router
 
 app = FastAPI(
     title="IdM SRE Lab",
-    version="1.2.0",
-    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 27-28 Post-Mortem）",
+    version="1.3.0",
+    description="Apple IdMS 风格 Identity Management + 完整 SRE 实践（Week 29-30 端到端验证）",
 )
 
 
@@ -24,9 +24,9 @@ async def health():
     return {
         "status": "ok",
         "service": "idm-sre-lab",
-        "version": "1.2.0",
-        "week": "27-28 (Post-Mortem)",
-        "endpoints_count": 62,
+        "version": "1.3.0",
+        "week": "29-30 (E2E verification + docs)",
+        "endpoints_count": 73,
     }
 
 
@@ -34,8 +34,8 @@ async def health():
 async def root():
     return {
         "service": "IdM SRE Lab",
-        "version": "1.2.0",
-        "week": "27-28",
+        "version": "1.3.0",
+        "week": "29-30",
         "endpoints": {
             "health": "/health",
             "discovery": "/.well-known/openid-configuration",
